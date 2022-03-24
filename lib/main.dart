@@ -17,8 +17,16 @@ import 'package:weather_app/ui/global/theme.dart';
 import 'package:weather_app/ui/home_screen/home_screen.dart';
 import 'package:weather_app/ui/splash_screen/splash_screen.dart';
 
+import 'models/db/weather_model_db.dart';
+
 void main() async {
   await Hive.initFlutter();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(WeatherModelDBAdapter());
+  await Hive.openBox<WeatherModelDB>('transactions');
   final AuthService googleSingInService = GoogleSignInService();
   final LocationService locationService = LocationService();
   final OpenWeatherService weatherService = OpenWeatherService();
