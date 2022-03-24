@@ -1,0 +1,9 @@
+{
+  "celsius_degree" : " °C",
+  "weather_main_is_null" : "не має погоди",
+  "loading_location_title" : "загрузка місця",
+  "undetermined_location_title" : "Unknown location",
+  "missing_date" : "не має даних",
+  "unknown_temperature" : "не має температури",
+  "degree_symbol" : "°",
+  "wind_degree_title": "швидкість вітру"}

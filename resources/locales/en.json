@@ -1,0 +1,10 @@
+{
+  "celsius_degree" : " °C",
+  "weather_main_is_null" : "Unknown weather",
+  "loading_location_title" : "Loading city name",
+  "undetermined_location_title" : "Unknown location",
+  "missing_date" : "Unknown date",
+  "unknown_temperature" : "?? °C",
+  "degree_symbol" : "°",
+  "wind_degree_title": "Wind degree"
+}
