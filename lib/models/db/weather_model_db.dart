@@ -8,7 +8,7 @@ class WeatherModelDB extends HiveObject {
   late String weatherMain;
 
   @HiveField(1)
-  late DateTime? weatherDate;
+  late DateTime? date;
 
   @HiveField(2)
   late int celsius;

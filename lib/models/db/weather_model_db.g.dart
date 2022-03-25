@@ -18,7 +18,7 @@ class WeatherModelDBAdapter extends TypeAdapter<WeatherModelDB> {
     };
     return WeatherModelDB()
       ..weatherMain = fields[0] as String
-      ..weatherDate = fields[1] as DateTime?
+      ..date = fields[1] as DateTime?
       ..celsius = fields[2] as int;
   }
 
@@ -29,7 +29,7 @@ class WeatherModelDBAdapter extends TypeAdapter<WeatherModelDB> {
       ..writeByte(0)
       ..write(obj.weatherMain)
       ..writeByte(1)
-      ..write(obj.weatherDate)
+      ..write(obj.date)
       ..writeByte(2)
       ..write(obj.celsius);
   }

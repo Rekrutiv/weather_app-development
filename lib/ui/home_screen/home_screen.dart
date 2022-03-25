@@ -6,7 +6,7 @@ import 'package:weather/weather.dart';
 import 'package:weather_app/bloc/location/location_bloc.dart';
 import 'package:weather_app/bloc/weather/weather_bloc.dart';
 
-import '../../boxes.dart';
+import '../../bloc/todo_hive/notes_bloc.dart';
 import '../../models/db/weather_model_db.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,78 +30,82 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var box = Boxes.getTransactions();
-    final transactions = box.values.toList().cast<WeatherModelDB>();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('loading_location_title'.tr()),
-        actions: [
-          IconButton(
-            onPressed: () {
-              BlocProvider.of<LocationBloc>(context).add(
-                const DetermineLocationEvent(),
-              );
-            },
-            icon: const Icon(
-              Icons.my_location,
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const SizedBox(
-            height: 10,
-          ),
-          BlocConsumer<LocationBloc, LocationState>(
-            listener: _locationStateListener,
-            builder: (context, state) {
-              if (state is LocationDeterminedState) {
-                return Text(
-                  state.location.name ?? 'undetermined_location_title'.tr(),
-                );
-              } else {
-                return Text(
-                  'loading_location_title'.tr(),
-                );
-              }
-            },
-          ),
-          Expanded(
-            child: BlocBuilder<WeatherBloc, WeatherState>(
-              builder: (context, state) {
-                if (state is WeatherLoadingState) {
-                  return _weatherLoadingStateWidget(context);
-                } else if (state is WeatherFetchErrorState) {
-                  return _weatherFetchErrorWidget(transactions);
-                } else if (state is WeatherDaysForecastState) {
-                  return _daysForecastListWidget(context, state);
-                } else if (state is WeatherInitial) {
-                  return _daysForecastDB(context, transactions);
-                } else {
-                  return const Center(
-                    child: Text('unhandled state'),
+    return BlocBuilder<NotesBloc, NotesState>(
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('loading_location_title'.tr()),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  BlocProvider.of<LocationBloc>(context).add(
+                    const DetermineLocationEvent(),
                   );
-                }
-              },
-            ),
+                },
+                icon: const Icon(
+                  Icons.my_location,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+          body: Column(
+            children: [
+              const SizedBox(
+                height: 10,
+              ),
+              BlocConsumer<LocationBloc, LocationState>(
+                listener: _locationStateListener,
+                builder: (context, state) {
+                  if (state is LocationDeterminedState) {
+                    return Text(
+                      state.location.name ?? 'undetermined_location_title'.tr(),
+                    );
+                  } else {
+                    return Text(
+                      'loading_location_title'.tr(),
+                    );
+                  }
+                },
+              ),
+              Expanded(
+                child: BlocBuilder<WeatherBloc, WeatherState>(
+                  builder: (context, state) {
+                    if (state is WeatherLoadingState) {
+                      return _weatherLoadingStateWidget(context);
+                    } else if (state is WeatherDaysForecastState) {
+                      return _daysForecastListWidget(context, state.forecast);
+                    } else if (state is WeatherInitial) {
+                      return context.read<NotesBloc>().box.values.isNotEmpty
+                          ? _daysForecastDB(context,
+                              context.read<NotesBloc>().box.values.toList())
+                          : Container();
+                    } else {
+                      return const Center(
+                        child: Text('unhandled state'),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Column _daysForecastListWidget(
     BuildContext context,
-    WeatherDaysForecastState state,
+    List<Weather> weather,
   ) {
-    List<Weather> items = state.forecast;
-    deleteTransaction();
+    List<Weather> items = weather;
+    context.read<NotesBloc>().box.clear();
     for (var element in items) {
-      addTransaction(
-          element.weatherMain ?? '',
-          element.temperature?.celsius?.round() ?? -1,
-          element.date ?? DateTime.now());
+      context.read<NotesBloc>().add(AddNoteEvent(
+            element.weatherMain ?? '',
+            element.date ?? DateTime.now(),
+            element.temperature?.celsius?.round() ?? -1,
+          ));
     }
     final itemDay = items
         .map<String>((row) => row.date?.day.toString() ?? '')
@@ -134,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onChanged: (String? newValue) {
                   setState(() {
                     selectedDay = newValue!;
-                    itemsFiltered = state.forecast
+                    itemsFiltered = weather
                         .where((e) => e.date?.day == int.parse(selectedDay!))
                         .toList();
                   });
@@ -160,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onChanged: (String? newValue) {
                   setState(() {
                     selectedHour = newValue ?? '';
-                    itemsFiltered = state.forecast
+                    itemsFiltered = weather
                         .where((e) => e.date?.hour == int.parse(selectedHour!))
                         .toList();
                   });
@@ -211,39 +215,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _weatherFetchErrorWidget(List<WeatherModelDB> transactions) {
-    return Column(
-      children: [const SizedBox(height: 24), Text('ERROR')],
-    );
-  }
-
-  Future addTransaction(String weatherMain, int celsius, DateTime date) async {
-    final transaction = WeatherModelDB()
-      ..weatherMain = weatherMain
-      ..weatherDate = date
-      ..celsius = celsius;
-
-    final box = Boxes.getTransactions();
-    box.add(transaction);
-  }
-
-  void deleteTransaction() {
-    final box = Boxes.getTransactions();
-    box.clear();
-  }
-
   Column _daysForecastDB(
     BuildContext context,
     List<WeatherModelDB> weather,
   ) {
     List<WeatherModelDB> itemsDB = weather;
-
+    print(itemsDB.length);
     final itemDay = itemsDB
-        .map<String>((row) => row.weatherDate?.day.toString() ?? '')
+        .map<String>((row) => row.date?.day.toString() ?? '')
         .toSet()
         .toList(growable: false);
     final itemHour = itemsDB
-        .map<String>((row) => row.weatherDate?.hour.toString() ?? '')
+        .map<String>((row) => row.date?.hour.toString() ?? '')
         .toSet()
         .toList(growable: false);
     if (selectedDay == null || selectedHour == null) {
@@ -270,8 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() {
                     selectedDay = newValue!;
                     itemsFilteredDB = weather
-                        .where((e) =>
-                            e.weatherDate?.day == int.parse(selectedDay!))
+                        .where((e) => e.date?.day == int.parse(selectedDay!))
                         .toList();
                   });
                 },
@@ -297,8 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() {
                     selectedHour = newValue ?? '';
                     itemsFilteredDB = weather
-                        .where((e) =>
-                            e.weatherDate?.hour.toString() == selectedHour)
+                        .where((e) => e.date?.hour == int.parse(selectedHour!))
                         .toList();
                   });
                 },
@@ -320,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? itemsDB[index]
                   : itemsFilteredDB![index];
               String title =
-                  DateFormat('yyyy-MM-dd – kk:mm').format(item.weatherDate!);
+                  DateFormat('yyyy-MM-dd – kk:mm').format(item.date!);
               final weatherMainText = item.weatherMain;
               final temperatureText =
                   '${item.celsius.round()}' + 'celsius_degree'.tr();
