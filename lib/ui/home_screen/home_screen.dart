@@ -220,7 +220,6 @@ class _HomeScreenState extends State<HomeScreen> {
     List<WeatherModelDB> weather,
   ) {
     List<WeatherModelDB> itemsDB = weather;
-    print(itemsDB.length);
     final itemDay = itemsDB
         .map<String>((row) => row.date?.day.toString() ?? '')
         .toSet()
@@ -251,6 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 isDense: true,
                 onChanged: (String? newValue) {
                   setState(() {
+                    print(itemsFilteredDB?.first.date?.day.toInt());
                     selectedDay = newValue!;
                     itemsFilteredDB = weather
                         .where((e) => e.date?.day == int.parse(selectedDay!))
