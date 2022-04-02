@@ -6,6 +6,7 @@ import 'package:weather/weather.dart';
 import 'package:weather_app/bloc/location/location_bloc.dart';
 import 'package:weather_app/bloc/weather/weather_bloc.dart';
 
+import '../../bloc/theme/theme_cubit.dart';
 import '../../bloc/todo_hive/notes_bloc.dart';
 import '../../models/db/weather_model_db.dart';
 
@@ -36,15 +37,15 @@ class _HomeScreenState extends State<HomeScreen> {
           appBar: AppBar(
             title: Text('loading_location_title'.tr()),
             actions: [
-              IconButton(
-                onPressed: () {
-                  BlocProvider.of<LocationBloc>(context).add(
-                    const DetermineLocationEvent(),
+              BlocBuilder<ThemeCubit, ThemeState>(
+                builder: (context, state) {
+                  return Switch(
+                    value: state.isDarkThemeOn,
+                    onChanged: (newValue) {
+                      context.read<ThemeCubit>().toggleSwitch(newValue);
+                    },
                   );
                 },
-                icon: const Icon(
-                  Icons.my_location,
-                ),
               ),
             ],
           ),
@@ -59,10 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (state is LocationDeterminedState) {
                     return Text(
                       state.location.name ?? 'undetermined_location_title'.tr(),
+                      style: Theme.of(context).textTheme.headline3,
                     );
                   } else {
                     return Text(
                       'loading_location_title'.tr(),
+                      style: Theme.of(context).textTheme.headline3,
                     );
                   }
                 },
@@ -125,13 +128,17 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const Text('choose day '),
+            Text(
+              'choose day ',
+              style: Theme.of(context).textTheme.headline3,
+            ),
             SizedBox(
               height: 30,
               child: DropdownButton<String>(
                 isExpanded: false,
-                hint: const Text(
+                hint: Text(
                   "day",
+                  style: Theme.of(context).textTheme.headline3,
                 ),
                 value: selectedDay,
                 isDense: true,
@@ -146,18 +153,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 items: itemDay.map((String i) {
                   return DropdownMenuItem<String>(
                     value: i,
-                    child: Text(i),
+                    child: Text(
+                      i,
+                      style: Theme.of(context).textTheme.headline3,
+                    ),
                   );
                 }).toList(),
               ),
             ),
-            const Text('choose hour '),
+            Text(
+              'choose hour ',
+              style: Theme.of(context).textTheme.headline3,
+            ),
             SizedBox(
               height: 30,
               child: DropdownButton<String>(
                 isExpanded: false,
-                hint: const Text(
+                hint: Text(
                   "hour",
+                  style: Theme.of(context).textTheme.headline3,
                 ),
                 value: selectedHour,
                 isDense: true,
@@ -172,7 +186,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 items: itemHour.map((String i) {
                   return DropdownMenuItem<String>(
                     value: i,
-                    child: Text(i),
+                    child: Text(
+                      i,
+                      style: Theme.of(context).textTheme.headline3,
+                    ),
                   );
                 }).toList(),
               ),
@@ -197,9 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
               return ListTile(
                 title: Text(
                   title,
+                  style: Theme.of(context).textTheme.headline3,
                 ),
                 subtitle: Text(
                   weatherMainText + ' ' + temperatureText,
+                  style: Theme.of(context).textTheme.headline3,
                 ),
               );
             },
@@ -250,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 isDense: true,
                 onChanged: (String? newValue) {
                   setState(() {
-                    print(itemsFilteredDB?.first.date?.day.toInt());
                     selectedDay = newValue!;
                     itemsFilteredDB = weather
                         .where((e) => e.date?.day == int.parse(selectedDay!))

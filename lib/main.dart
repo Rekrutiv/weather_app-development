@@ -10,9 +10,9 @@ import 'package:weather_app/repository/auth_repository.dart';
 import 'package:weather_app/repository/location_repository.dart';
 import 'package:weather_app/repository/todo_repository.dart';
 import 'package:weather_app/repository/weather_repository.dart';
-import 'package:weather_app/ui/global/theme.dart';
 import 'package:weather_app/ui/home_screen/home_screen.dart';
 import 'package:weather_app/ui/splash_screen/splash_screen.dart';
+import 'bloc/theme/theme_cubit.dart';
 import 'bloc/todo_hive/notes_bloc.dart';
 import 'models/db/weather_model_db.dart';
 import 'package:weather_app/service/dependency_injection.dart';
@@ -51,6 +51,9 @@ void main() async {
         BlocProvider(
           create: (context) => NotesBloc(sl<NoteRepository>())
             ..add(InitRepositoryWithNotesEvent()),
+        ),
+        BlocProvider<ThemeCubit>(
+          create: (context) => ThemeCubit(),
         )
       ],
       child: EasyLocalization(
@@ -78,17 +81,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ThemeState>(
+  builder: (context, state) {
     return MaterialApp(
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
       title: 'Weather App',
-      theme: defaultTheme,
+      theme: state.theme,
       initialRoute: SplashScreen.id,
       routes: {
         SplashScreen.id: (context) => const SplashScreen(),
         HomeScreen.id: (context) => const HomeScreen(),
       },
     );
+  },
+);
   }
 }
